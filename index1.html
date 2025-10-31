@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Receipt Filter Prototype</title>
+<style>
+  body {
+    font-family: system-ui, sans-serif;
+    display: flex;
+    height: 100vh;
+    margin: 0;
+    background: #f8f9fa;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    width: 220px;
+    border-right: 1px solid #ddd;
+    background: #fff;
+    padding: 1rem;
+  }
+
+  .sidebar h3 {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  label {
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* Main section */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    margin: 1rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+
+  .search-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 1rem;
+    border-bottom: 1px solid #eee;
+  }
+
+  .search-bar input {
+    flex: 1;
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+  }
+
+  .search-bar button {
+    border: none;
+    background: #2563eb;
+    color: white;
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  /* Chips */
+  .chips {
+    padding: 0 1rem 0.5rem 1rem;
+  }
+
+  .chip {
+    display: inline-block;
+    background: #e2e8f0;
+    border-radius: 14px;
+    padding: 4px 10px;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+  }
+
+  .chip span {
+    margin-left: 6px;
+    color: #555;
+    cursor: pointer;
+  }
+
+  .clear-all {
+    margin: 0.5rem 1rem;
+    font-size: 0.85rem;
+    color: #2563eb;
+    cursor: pointer;
+  }
+
+  /* Results */
+  .results {
+    flex: 1;
+    padding: 1rem;
+  }
+
+  .result-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid #f1f1f1;
+    transition: background 0.2s;
+  }
+
+  .result-item:hover {
+    background: #f9fafb;
+  }
+
+  .title {
+    font-weight: 600;
+    color: #111;
+  }
+
+  .subtitle {
+    font-size: 0.9rem;
+    color: #555;
+  }
+
+  .date {
+    font-size: 0.85rem;
+    color: #777;
+  }
+</style>
+</head>
+<body>
+  <div class="sidebar">
+    <h3>Visible filters</h3>
+    <label><input type="checkbox" id="university" checked> University</label>
+  </div>
+
+  <div class="main">
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Show receipts from 2022">
+      <button onclick="applySearch()">🔍</button>
+    </div>
+
+    <div class="chips" id="chips">
+      <span class="chip">from: University <span onclick="removeChip(this)">✕</span></span>
+      <span class="chip">has: pdf <span onclick="removeChip(this)">✕</span></span>
+      <span class="chip">before: 2023 <span onclick="removeChip(this)">✕</span></span>
+    </div>
+
+    <div class="clear-all" onclick="clearAll()">Clear all</div>
+
+    <div class="results" id="results">
+      <div class="result-item">
+        <div>
+          <div class="title">University</div>
+          <div class="subtitle">Your receipt from XYZ University</div>
+        </div>
+        <div class="date">May 24, 2022</div>
+      </div>
+      <div class="result-item">
+        <div>
+          <div class="title">University</div>
+          <div class="subtitle">Your receipt from ABC University</div>
+        </div>
+        <div class="date">May 24, 2022</div>
+      </div>
+      <div class="result-item">
+        <div>
+          <div class="title">University</div>
+          <div class="subtitle">Your receipt from LMN University</div>
+        </div>
+        <div class="date">May 24, 2022</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function removeChip(el) {
+      el.parentElement.remove();
+    }
+
+    function clearAll() {
+      document.getElementById("chips").innerHTML = "";
+    }
+
+    function applySearch() {
+      const input = document.getElementById("searchInput").value.trim();
+      alert("Simulated search: " + input);
+    }
+  </script>
+</body>
+</html>
