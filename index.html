@@ -100,6 +100,7 @@
   .results {
     flex: 1;
     padding: 1rem;
+    transition: opacity 0.3s ease;
   }
 
   .result-item {
@@ -129,12 +130,17 @@
     font-size: 0.85rem;
     color: #777;
   }
+
+  /* Fade animation */
+  .fade-out {
+    opacity: 0;
+  }
 </style>
 </head>
 <body>
   <div class="sidebar">
     <h3>Visible filters</h3>
-    <label><input type="checkbox" id="university" checked> University</label>
+    <label><input type="checkbox" id="university" checked onchange="toggleFilter()"> University</label>
   </div>
 
   <div class="main">
@@ -151,32 +157,46 @@
 
     <div class="clear-all" onclick="clearAll()">Clear all</div>
 
-    <div class="results" id="results">
-      <div class="result-item">
-        <div>
-          <div class="title">University</div>
-          <div class="subtitle">Your receipt from XYZ University</div>
-        </div>
-        <div class="date">May 24, 2022</div>
-      </div>
-      <div class="result-item">
-        <div>
-          <div class="title">University</div>
-          <div class="subtitle">Your receipt from ABC University</div>
-        </div>
-        <div class="date">May 24, 2022</div>
-      </div>
-      <div class="result-item">
-        <div>
-          <div class="title">University</div>
-          <div class="subtitle">Your receipt from LMN University</div>
-        </div>
-        <div class="date">May 24, 2022</div>
-      </div>
-    </div>
+    <div class="results" id="results"></div>
   </div>
 
   <script>
+    const resultsDiv = document.getElementById("results");
+
+    const universityResults = [
+      { title: "University", subtitle: "Your receipt from Western University", date: "May 24, 2022" },
+      { title: "University", subtitle: "Your receipt from McGill University", date: "May 24, 2022" },
+      { title: "University", subtitle: "Your receipt from Toronto University", date: "May 24, 2022" }
+    ];
+
+    const mixedResults = [
+      ...universityResults,
+      { title: "Amazon", subtitle: "Your payment receipt", date: "May 15, 2022" },
+      { title: "Apple", subtitle: "Invoice for purchase", date: "June 03, 2022" },
+      { title: "Grocery Mart", subtitle: "Receipt for grocery order", date: "June 10, 2022" }
+    ];
+
+    function renderResults(list) {
+      resultsDiv.classList.add("fade-out");
+      setTimeout(() => {
+        resultsDiv.innerHTML = list.map(item => `
+          <div class="result-item">
+            <div>
+              <div class="title">${item.title}</div>
+              <div class="subtitle">${item.subtitle}</div>
+            </div>
+            <div class="date">${item.date}</div>
+          </div>
+        `).join("");
+        resultsDiv.classList.remove("fade-out");
+      }, 200);
+    }
+
+    function toggleFilter() {
+      const checked = document.getElementById("university").checked;
+      renderResults(checked ? universityResults : mixedResults);
+    }
+
     function removeChip(el) {
       el.parentElement.remove();
     }
@@ -189,6 +209,9 @@
       const input = document.getElementById("searchInput").value.trim();
       alert("Simulated search: " + input);
     }
+
+    // initial render
+    renderResults(universityResults);
   </script>
 </body>
 </html>
