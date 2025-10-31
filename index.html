@@ -2,14 +2,20 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Receipt Filter Prototype (Connected)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Receipt Filter Prototype (Responsive)</title>
 <style>
+  :root {
+    --blue: #2563eb;
+    --gray-bg: #f8f9fa;
+  }
+
   body {
     font-family: system-ui, sans-serif;
     display: flex;
     height: 100vh;
     margin: 0;
-    background: #f8f9fa;
+    background: var(--gray-bg);
   }
 
   /* Sidebar */
@@ -30,9 +36,10 @@
     display: flex;
     align-items: center;
     gap: 6px;
+    margin-bottom: 0.5rem;
   }
 
-  /* Main section */
+  /* Main area */
   .main {
     flex: 1;
     display: flex;
@@ -49,10 +56,12 @@
     gap: 10px;
     padding: 1rem;
     border-bottom: 1px solid #eee;
+    flex-wrap: wrap;
   }
 
   .search-bar input {
     flex: 1;
+    min-width: 180px;
     padding: 0.6rem 1rem;
     border-radius: 8px;
     border: 1px solid #ccc;
@@ -61,25 +70,28 @@
 
   .search-bar button {
     border: none;
-    background: #2563eb;
+    background: var(--blue);
     color: white;
     padding: 0.6rem 1rem;
     border-radius: 8px;
     cursor: pointer;
+    flex-shrink: 0;
   }
 
   /* Chips */
   .chips {
     padding: 0 1rem 0.5rem 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
   }
 
   .chip {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
     background: #e2e8f0;
     border-radius: 14px;
     padding: 4px 10px;
-    margin-right: 5px;
-    margin-bottom: 5px;
     font-size: 0.9rem;
   }
 
@@ -92,7 +104,7 @@
   .clear-all {
     margin: 0.5rem 1rem;
     font-size: 0.85rem;
-    color: #2563eb;
+    color: var(--blue);
     cursor: pointer;
   }
 
@@ -101,12 +113,14 @@
     flex: 1;
     padding: 1rem;
     transition: opacity 0.3s ease;
+    overflow-y: auto;
   }
 
   .result-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
     padding: 0.8rem 1rem;
     border-bottom: 1px solid #f1f1f1;
     transition: background 0.2s;
@@ -132,14 +146,40 @@
   }
 
   /* Fade animation */
-  .fade-out {
-    opacity: 0;
+  .fade-out { opacity: 0; }
+
+  /* Mobile layout */
+  @media (max-width: 768px) {
+    body {
+      flex-direction: column;
+      height: auto;
+    }
+    .sidebar {
+      width: 100%;
+      border-right: none;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+    }
+    .main {
+      margin: 0.5rem;
+      border-radius: 8px;
+    }
+    .result-item {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .date {
+      align-self: flex-end;
+      margin-top: 0.3rem;
+    }
   }
 </style>
 </head>
 <body>
   <div class="sidebar">
-    <h3>Visible filters</h3>
+    <h3>Filters</h3>
     <label><input type="checkbox" id="university" data-filter="university" checked onchange="updateFromSidebar(this)"> University</label>
     <label><input type="checkbox" id="pdf" data-filter="pdf" checked onchange="updateFromSidebar(this)"> Has PDF</label>
     <label><input type="checkbox" id="before2023" data-filter="before2023" checked onchange="updateFromSidebar(this)"> Before 2023</label>
@@ -161,106 +201,79 @@
     const chipsContainer = document.getElementById("chips");
     const resultsDiv = document.getElementById("results");
 
-    // Mock datasets
     const allResults = [
       { title: "University", subtitle: "Receipt from Western University", date: "May 24, 2022" },
       { title: "University", subtitle: "Receipt from McGill University", date: "May 25, 2022" },
-      { title: "Amazon", subtitle: "Your payment receipt", date: "June 15, 2022" },
-      { title: "Apple", subtitle: "Invoice for MacBook purchase", date: "June 03, 2022" },
+      { title: "Amazon", subtitle: "Payment receipt", date: "June 15, 2022" },
+      { title: "Apple", subtitle: "Invoice for MacBook", date: "June 03, 2022" },
       { title: "Grocery Mart", subtitle: "Grocery order", date: "June 10, 2022" }
     ];
 
-    const filters = {
-      university: true,
-      pdf: true,
-      before2023: true
-    };
+    const filters = { university: true, pdf: true, before2023: true };
 
     function renderResults() {
       resultsDiv.classList.add("fade-out");
       setTimeout(() => {
         let filtered = [...allResults];
-
-        // Apply simulated filtering logic
         if (filters.university) filtered = filtered.filter(r => r.title === "University");
         if (filters.before2023) filtered = filtered.filter(r => new Date(r.date).getFullYear() <= 2022);
-        if (filters.pdf) filtered = filtered.slice(0, filtered.length - 1); // pretend PDF narrows results
-
-        if (filtered.length === 0) {
-          resultsDiv.innerHTML = `<div style="padding:1rem; color:#777;">No results match your filters.</div>`;
-        } else {
-          resultsDiv.innerHTML = filtered.map(r => `
-            <div class="result-item">
-              <div>
-                <div class="title">${r.title}</div>
-                <div class="subtitle">${r.subtitle}</div>
-              </div>
-              <div class="date">${r.date}</div>
-            </div>
-          `).join("");
-        }
+        if (filters.pdf) filtered = filtered.slice(0, filtered.length - 1);
+        resultsDiv.innerHTML = filtered.length
+          ? filtered.map(r => `
+              <div class="result-item">
+                <div>
+                  <div class="title">${r.title}</div>
+                  <div class="subtitle">${r.subtitle}</div>
+                </div>
+                <div class="date">${r.date}</div>
+              </div>`).join("")
+          : `<div style="padding:1rem; color:#777;">No results match your filters.</div>`;
         resultsDiv.classList.remove("fade-out");
       }, 200);
     }
 
-    // Sidebar → Chips
-    function updateFromSidebar(checkbox) {
-      const filter = checkbox.dataset.filter;
-      filters[filter] = checkbox.checked;
-
-      if (checkbox.checked) {
-        createChip(filter);
-      } else {
-        removeChipByFilter(filter);
-      }
-
+    function updateFromSidebar(cb) {
+      const f = cb.dataset.filter;
+      filters[f] = cb.checked;
+      cb.checked ? createChip(f) : removeChipByFilter(f);
       renderResults();
     }
 
-    // Chips → Sidebar
     function removeChip(el) {
-      const filter = el.parentElement.dataset.filter;
+      const f = el.parentElement.dataset.filter;
       el.parentElement.remove();
-      document.querySelector(`[data-filter="${filter}"]`).checked = false;
-      filters[filter] = false;
+      document.querySelector(`[data-filter="${f}"]`).checked = false;
+      filters[f] = false;
       renderResults();
     }
 
-    function removeChipByFilter(filter) {
-      const chip = chipsContainer.querySelector(`[data-filter="${filter}"]`);
-      if (chip) chip.remove();
+    function removeChipByFilter(f) {
+      const c = chipsContainer.querySelector(`[data-filter="${f}"]`);
+      if (c) c.remove();
     }
 
-    function createChip(filter) {
-      // avoid duplicates
-      if (chipsContainer.querySelector(`[data-filter="${filter}"]`)) return;
-
-      const textMap = {
-        university: "from: University",
-        pdf: "has: pdf",
-        before2023: "before: 2023"
-      };
+    function createChip(f) {
+      if (chipsContainer.querySelector(`[data-filter="${f}"]`)) return;
+      const text = { university:"from: University", pdf:"has: pdf", before2023:"before: 2023" };
       const chip = document.createElement("span");
       chip.className = "chip";
-      chip.dataset.filter = filter;
-      chip.innerHTML = `${textMap[filter]} <span onclick="removeChip(this)">✕</span>`;
+      chip.dataset.filter = f;
+      chip.innerHTML = `${text[f]} <span onclick="removeChip(this)">✕</span>`;
       chipsContainer.appendChild(chip);
     }
 
     function clearAll() {
-      // reset filters and chips
       Object.keys(filters).forEach(f => filters[f] = false);
-      document.querySelectorAll(".sidebar input[type=checkbox]").forEach(cb => cb.checked = false);
+      document.querySelectorAll(".sidebar input").forEach(cb => cb.checked = false);
       chipsContainer.innerHTML = "";
       renderResults();
     }
 
     function applySearch() {
-      const input = document.getElementById("searchInput").value.trim();
-      alert("Simulated search for: " + input);
+      const val = document.getElementById("searchInput").value.trim();
+      alert("Simulated search: " + val);
     }
 
-    // Initialize chips and results
     window.onload = () => {
       Object.keys(filters).forEach(f => createChip(f));
       renderResults();
