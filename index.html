@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Receipt Filter Prototype</title>
+<title>Receipt Filter Prototype (Connected)</title>
 <style>
   body {
     font-family: system-ui, sans-serif;
@@ -140,7 +140,9 @@
 <body>
   <div class="sidebar">
     <h3>Visible filters</h3>
-    <label><input type="checkbox" id="university" checked onchange="toggleFilter()"> University</label>
+    <label><input type="checkbox" id="university" data-filter="university" checked onchange="updateFromSidebar(this)"> University</label>
+    <label><input type="checkbox" id="pdf" data-filter="pdf" checked onchange="updateFromSidebar(this)"> Has PDF</label>
+    <label><input type="checkbox" id="before2023" data-filter="before2023" checked onchange="updateFromSidebar(this)"> Before 2023</label>
   </div>
 
   <div class="main">
@@ -149,69 +151,120 @@
       <button onclick="applySearch()">🔍</button>
     </div>
 
-    <div class="chips" id="chips">
-      <span class="chip">from: University <span onclick="removeChip(this)">✕</span></span>
-      <span class="chip">has: pdf <span onclick="removeChip(this)">✕</span></span>
-      <span class="chip">before: 2023 <span onclick="removeChip(this)">✕</span></span>
-    </div>
-
+    <div class="chips" id="chips"></div>
     <div class="clear-all" onclick="clearAll()">Clear all</div>
 
     <div class="results" id="results"></div>
   </div>
 
   <script>
+    const chipsContainer = document.getElementById("chips");
     const resultsDiv = document.getElementById("results");
 
-    const universityResults = [
-      { title: "University", subtitle: "Your receipt from Western University", date: "May 24, 2022" },
-      { title: "University", subtitle: "Your receipt from McGill University", date: "May 24, 2022" },
-      { title: "University", subtitle: "Your receipt from Toronto University", date: "May 24, 2022" }
+    // Mock datasets
+    const allResults = [
+      { title: "University", subtitle: "Receipt from Western University", date: "May 24, 2022" },
+      { title: "University", subtitle: "Receipt from McGill University", date: "May 25, 2022" },
+      { title: "Amazon", subtitle: "Your payment receipt", date: "June 15, 2022" },
+      { title: "Apple", subtitle: "Invoice for MacBook purchase", date: "June 03, 2022" },
+      { title: "Grocery Mart", subtitle: "Grocery order", date: "June 10, 2022" }
     ];
 
-    const mixedResults = [
-      ...universityResults,
-      { title: "Amazon", subtitle: "Your payment receipt", date: "May 15, 2022" },
-      { title: "Apple", subtitle: "Invoice for purchase", date: "June 03, 2022" },
-      { title: "Grocery Mart", subtitle: "Receipt for grocery order", date: "June 10, 2022" }
-    ];
+    const filters = {
+      university: true,
+      pdf: true,
+      before2023: true
+    };
 
-    function renderResults(list) {
+    function renderResults() {
       resultsDiv.classList.add("fade-out");
       setTimeout(() => {
-        resultsDiv.innerHTML = list.map(item => `
-          <div class="result-item">
-            <div>
-              <div class="title">${item.title}</div>
-              <div class="subtitle">${item.subtitle}</div>
+        let filtered = [...allResults];
+
+        // Apply simulated filtering logic
+        if (filters.university) filtered = filtered.filter(r => r.title === "University");
+        if (filters.before2023) filtered = filtered.filter(r => new Date(r.date).getFullYear() <= 2022);
+        if (filters.pdf) filtered = filtered.slice(0, filtered.length - 1); // pretend PDF narrows results
+
+        if (filtered.length === 0) {
+          resultsDiv.innerHTML = `<div style="padding:1rem; color:#777;">No results match your filters.</div>`;
+        } else {
+          resultsDiv.innerHTML = filtered.map(r => `
+            <div class="result-item">
+              <div>
+                <div class="title">${r.title}</div>
+                <div class="subtitle">${r.subtitle}</div>
+              </div>
+              <div class="date">${r.date}</div>
             </div>
-            <div class="date">${item.date}</div>
-          </div>
-        `).join("");
+          `).join("");
+        }
         resultsDiv.classList.remove("fade-out");
       }, 200);
     }
 
-    function toggleFilter() {
-      const checked = document.getElementById("university").checked;
-      renderResults(checked ? universityResults : mixedResults);
+    // Sidebar → Chips
+    function updateFromSidebar(checkbox) {
+      const filter = checkbox.dataset.filter;
+      filters[filter] = checkbox.checked;
+
+      if (checkbox.checked) {
+        createChip(filter);
+      } else {
+        removeChipByFilter(filter);
+      }
+
+      renderResults();
     }
 
+    // Chips → Sidebar
     function removeChip(el) {
+      const filter = el.parentElement.dataset.filter;
       el.parentElement.remove();
+      document.querySelector(`[data-filter="${filter}"]`).checked = false;
+      filters[filter] = false;
+      renderResults();
+    }
+
+    function removeChipByFilter(filter) {
+      const chip = chipsContainer.querySelector(`[data-filter="${filter}"]`);
+      if (chip) chip.remove();
+    }
+
+    function createChip(filter) {
+      // avoid duplicates
+      if (chipsContainer.querySelector(`[data-filter="${filter}"]`)) return;
+
+      const textMap = {
+        university: "from: University",
+        pdf: "has: pdf",
+        before2023: "before: 2023"
+      };
+      const chip = document.createElement("span");
+      chip.className = "chip";
+      chip.dataset.filter = filter;
+      chip.innerHTML = `${textMap[filter]} <span onclick="removeChip(this)">✕</span>`;
+      chipsContainer.appendChild(chip);
     }
 
     function clearAll() {
-      document.getElementById("chips").innerHTML = "";
+      // reset filters and chips
+      Object.keys(filters).forEach(f => filters[f] = false);
+      document.querySelectorAll(".sidebar input[type=checkbox]").forEach(cb => cb.checked = false);
+      chipsContainer.innerHTML = "";
+      renderResults();
     }
 
     function applySearch() {
       const input = document.getElementById("searchInput").value.trim();
-      alert("Simulated search: " + input);
+      alert("Simulated search for: " + input);
     }
 
-    // initial render
-    renderResults(universityResults);
+    // Initialize chips and results
+    window.onload = () => {
+      Object.keys(filters).forEach(f => createChip(f));
+      renderResults();
+    };
   </script>
 </body>
 </html>
